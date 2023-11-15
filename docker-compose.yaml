@@ -1,6 +1,28 @@
 version: "3.8"
 services:
-  # Database server
+  # PHP Service
+  php:
+    container_name: php
+    build:
+      context: .
+      target: php
+      args:
+        - APP_ENV=${APP_ENV}
+    environment:
+      - APP_ENV=${APP_ENV}
+      - CONTAINER_ROLE=app
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+      - redis
+    networks:
+      - laravel-chat-app
+
+    # Database Server
   database:
     container_name: mysql
     image: mysql:8.0
@@ -14,9 +36,20 @@ services:
     volumes:
       - db-data:/var/lib/mysql
     networks:
-      - my-network-name
+      - laravel-chat-app
+
+  # Redis Server
+  redis:
+    container_name: redis
+    image: redis:alpine
+#    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel-chat-app
 networks:
-  my-network-name:
+  laravel-chat-app:
     name: laravel-chat-app
 volumes:
   db-data: ~
